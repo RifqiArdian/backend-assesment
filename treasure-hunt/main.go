@@ -21,11 +21,12 @@ func main(){
 		{2,2},{2,3},{2,4},{3,4},{3,6},{4,2},
 	}
 
-	firstPosition(user,x, y, obstacle)
-
 	treasure := randomPosition()
 
+	treasureHint :=  randomPosition()
 	treasureInObstacle := false
+	treasureHintInObstacle := false
+
 	for {
 		for _, o := range obstacle {
 			if treasure[0] == o || treasure[0]==user[0] {
@@ -39,6 +40,22 @@ func main(){
 			break
 		}
 	}
+
+	for {
+		for _, o := range obstacle {
+			if treasureHint[0] == o || treasureHint[0]==user[0] || treasureHint[0]==treasure[0]{
+				treasureHint = randomPosition()
+				treasureHintInObstacle = true
+				break
+			}
+			treasureHintInObstacle = false
+		}
+		if !treasureHintInObstacle{
+			break
+		}
+	}
+
+	firstPosition(user,x, y, obstacle, treasure, treasureHint)
 
 	for  {
 		info()
@@ -71,7 +88,8 @@ func main(){
 		for i:=0; i<x; i++ {
 			for j:=0; j<y; j++ {
 				isObstacle := false
-				//isTreasure := false
+				isTreasure := false
+				isTreasureHint := false
 				isUser := false
 
 				for _, u := range user {
@@ -84,18 +102,23 @@ func main(){
 						isObstacle = true
 					}
 				}
-				//for _, t := range treasure {
-				//	if i == t[0] && j == t[1] {
-				//		isTreasure = true
-				//	}
-				//}
+				for _, th := range treasureHint {
+					if i == th[0] && j == th[1] {
+						isTreasureHint = true
+					}
+				}
+				for _, t := range treasure {
+					if i == t[0] && j == t[1] {
+						isTreasure = true
+					}
+				}
 
 				if isObstacle {
 					fmt.Print("#")
 				}else if isUser{
 					fmt.Print("X")
-				//}else if isTreasure{
-				//	fmt.Print("$")
+				}else if isTreasure || isTreasureHint{
+					fmt.Print("$")
 				}else{
 					fmt.Print(".")
 				}
@@ -118,11 +141,13 @@ func randomPosition() [1][2]int {
 	return [1][2]int{{randomX,randomY}}
 }
 
-func firstPosition(user [1][2]int, x int, y int, obstacle [34][2]int){
+func firstPosition(user [1][2]int, x int, y int, obstacle [34][2]int, treasure [1][2]int, treasureHint [1][2]int){
 	for i:=0; i<x; i++ {
 		for j:=0; j<y; j++ {
 			isObstacle := false
 			isUser := false
+			isTreasure := false
+			isTreasureHint := false
 
 			for _, u := range user {
 				if i == u[0] && j == u[1] {
@@ -134,11 +159,23 @@ func firstPosition(user [1][2]int, x int, y int, obstacle [34][2]int){
 					isObstacle = true
 				}
 			}
+			for _, th := range treasureHint {
+				if i == th[0] && j == th[1] {
+					isTreasureHint = true
+				}
+			}
+			for _, t := range treasure {
+				if i == t[0] && j == t[1] {
+					isTreasure = true
+				}
+			}
 
 			if isObstacle {
 				fmt.Print("#")
 			}else if isUser{
 				fmt.Print("X")
+			}else if isTreasure || isTreasureHint{
+				fmt.Print("$")
 			}else{
 				fmt.Print(".")
 			}
