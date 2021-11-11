@@ -22,11 +22,11 @@ func main(){
 	}
 
 	treasure := randomPosition()
-
 	treasureHint :=  randomPosition()
 	treasureInObstacle := false
 	treasureHintInObstacle := false
 
+	//check if treasure is in obstacle or in first x position
 	for {
 		for _, o := range obstacle {
 			if treasure[0] == o || treasure[0]==user[0] {
@@ -41,6 +41,7 @@ func main(){
 		}
 	}
 
+	//check if treasure hint is in obstacle or in first x position or in treasure position
 	for {
 		for _, o := range obstacle {
 			if treasureHint[0] == o || treasureHint[0]==user[0] || treasureHint[0]==treasure[0]{
@@ -55,16 +56,21 @@ func main(){
 		}
 	}
 
+	//display first position
 	firstPosition(user,x, y, obstacle, treasure, treasureHint)
 
 	for  {
+		//get info for move x
 		info()
+
+		//get command from user to  move x
 		reader := bufio.NewReader(os.Stdin)
 		char, _, err := reader.ReadRune()
 		if err != nil {
 			fmt.Println(err)
 		}
 
+		//change position x
 		positionBefore := user
 		if char == 'a'{
 			user[0][0] -= 1
@@ -78,6 +84,7 @@ func main(){
 			fmt.Println("wrong input")
 		}
 
+		//check is x move to obstacle
 		for _, o := range obstacle {
 			if user[0] == o {
 				fmt.Println("forbidden")
@@ -85,6 +92,7 @@ func main(){
 			}
 		}
 
+		//display new position
 		for i:=0; i<x; i++ {
 			for j:=0; j<y; j++ {
 				isObstacle := false
@@ -127,6 +135,7 @@ func main(){
 			fmt.Println("")
 		}
 
+		//check if user and treasure in the same position
 		if user == treasure{
 			break
 		}
