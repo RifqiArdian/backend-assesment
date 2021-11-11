@@ -53,7 +53,10 @@ func (service *cartServiceImpl) Get(userId string) (responses []model.GetCartRes
 }
 
 func (service *cartServiceImpl) Insert(request model.InsertCartRequest) {
+	//run validation
 	validation.ValidateCreateCart(request)
+
+	//insert cart
 	cart := entity.Cart{
 		Id:        uuid.New().String(),
 		UserId:    request.UserId,
@@ -68,6 +71,7 @@ func (service *cartServiceImpl) Insert(request model.InsertCartRequest) {
 }
 
 func (service *cartServiceImpl) Update(request model.UpdateCartRequest) {
+	//run validation
 	validation.ValidateUpdateCart(request)
 	cart := entity.Cart{
 		Id:        request.Id,
@@ -80,6 +84,7 @@ func (service *cartServiceImpl) Update(request model.UpdateCartRequest) {
 }
 
 func (service *cartServiceImpl) Delete(id string) {
+	//call delete cart repository
 	service.CartRepository.Delete(id)
 
 	logger.Info().Interface("Cart: ", id).Msg("Delete cart success")

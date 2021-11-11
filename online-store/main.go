@@ -20,18 +20,22 @@ func main()  {
 	configuration := config.New()
 	database := config.NewMongoDatabase(configuration)
 
+	//initialisation repository
 	cartRepository := repository_impl.NewCartRepository(database, configuration)
 	productRepository := repository_impl.NewProductRepository(database, configuration)
 	transactionRepository := repository_impl.NewTransactionRepository(database, configuration)
 	userRepository := repository_impl.NewUserRepository(database, configuration)
 
+	//initialisation service
 	cartService := service_impl.NewCartService(&cartRepository,&productRepository,configuration)
 	productService := service_impl.NewProductService(&productRepository,configuration)
 	transactionService := service_impl.NewTransactionService(&transactionRepository,&productRepository, &userRepository,configuration)
 	authService := service_impl.NewAuthService(&userRepository,configuration)
 
+	//initialisation middleware
 	authMiddleware := middleware.NewAuthMiddleware(&userRepository)
 
+	//initialisation controller
 	cartController := controller.NewCartController(&cartService,configuration,&authMiddleware)
 	productController := controller.NewProductController(&productService,configuration,&authMiddleware)
 	transactionController := controller.NewTransactionController(&transactionService,configuration,&authMiddleware)
@@ -39,6 +43,7 @@ func main()  {
 
 	app := fiber.New(config.NewFiberConfig())
 	app.Use(recover.New())
+	//create unique trace id for log
 	app.Use(requestid.New(requestid.Config{
 		Header: "X-Trace-Id",
 		Generator: func() string {

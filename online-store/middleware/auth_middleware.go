@@ -22,6 +22,7 @@ type authMiddlewareImpl struct {
 }
 
 func (middleware *authMiddlewareImpl) CheckToken(c *fiber.Ctx) error {
+	//check token from cookie
 	token := c.Cookies("token")
 	_,err := middleware.UserRepository.FindByToken(token)
 	if err != nil{

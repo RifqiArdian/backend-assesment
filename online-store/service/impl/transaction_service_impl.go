@@ -39,19 +39,24 @@ type HandleRaceCondition struct {
 }
 
 func (service *transactionServiceImpl) Insert(request model.InsertTransactionRequest) {
+	//run validation
 	validation.ValidateCreateTransaction(request)
 	value := &HandleRaceCondition{}
 
+	//start database transaction
 	client, trxOpts := service.ProductRepository.SessionTransaction()
 	session, err := client.StartSession()
 	exception.PanicIfNeeded(err)
 	defer session.EndSession(context.Background())
 
 	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		//check product
 		productTransaction,_ := service.ProductRepository.FindById(request.ProductId)
+		//lock stock
 		value.Set(productTransaction.Stock)
 		productStock := value.Get()-request.Quantity
 
+		//send error if insufficient stock
 		if productStock<0{
 			panic(exception.ValidationError{
 				Message: "insufficient stock",
@@ -65,10 +70,13 @@ func (service *transactionServiceImpl) Insert(request model.InsertTransactionReq
 			UpdatedAt: time.Now().UnixNano(),
 		}
 
+		//check user
 		user,_ := service.UserRepository.FindById(request.UserId)
+		//loock balance
 		value.Set(user.Balance)
 		balance := value.Get()-productTransaction.Price*(request.Quantity)
 
+		//send error if insufficient balance
 		if balance<0{
 			panic(exception.ValidationError{
 				Message: "insufficient balance",
@@ -81,15 +89,18 @@ func (service *transactionServiceImpl) Insert(request model.InsertTransactionReq
 			Balance:   balance,
 			UpdatedAt: time.Now().UnixNano(),
 		}
+		//update user balance
 		err = service.UserRepository.UpdateBalance(user,sessionContext)
 		if err != nil{
 			return nil, err
 		}
+		//update product stock
 		err  = service.ProductRepository.UpdateStock(product, sessionContext)
 		if err != nil{
 			return nil, err
 		}
 
+		//add transaction
 		transaction := entity.Transaction{
 			Id:         uuid.New().String(),
 			UserId:     request.UserId,
@@ -105,7 +116,9 @@ func (service *transactionServiceImpl) Insert(request model.InsertTransactionReq
 
 		return nil, nil
 	}
+	//check if error in transaction
 	_, err = session.WithTransaction(context.Background(), callback, trxOpts)
+	//send error if error in transaction
 	exception.PanicIfNeeded(err)
 
 	logger.Info().Interface("Transaction: ", request).Msg("Add transaction success")

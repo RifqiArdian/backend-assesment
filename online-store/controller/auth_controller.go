@@ -36,6 +36,8 @@ func (controller *AuthController) Route(app *fiber.App) {
 func (controller *AuthController) Register(c *fiber.Ctx) error {
 	helper.LogRequest(c)
 	var request model.RegisterRequest
+
+	//parsing request to model
 	err := c.BodyParser(&request)
 	if err!=nil{
 		panic(exception.ValidationError{
@@ -43,7 +45,11 @@ func (controller *AuthController) Register(c *fiber.Ctx) error {
 			Message:  "Invalid data input",
 		})
 	}
+
+	//call register service
 	response := controller.AuthService.Register(request)
+
+	//create cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    response.Token,
@@ -72,6 +78,8 @@ func (controller *AuthController) Register(c *fiber.Ctx) error {
 func (controller *AuthController) Login(c *fiber.Ctx) error {
 	helper.LogRequest(c)
 	var request model.LoginRequest
+
+	//parsing request to model
 	err := c.BodyParser(&request)
 	if err!=nil{
 		panic(exception.ValidationError{
@@ -79,7 +87,11 @@ func (controller *AuthController) Login(c *fiber.Ctx) error {
 			Message:  "Invalid data input",
 		})
 	}
+
+	//call login service
 	response := controller.AuthService.Login(request)
+
+	//create cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    response.Token,
@@ -109,6 +121,8 @@ func (controller *AuthController) Logout(c *fiber.Ctx) error {
 	helper.LogRequest(c)
 	token := c.Cookies("token")
 	controller.AuthService.Logout(token)
+
+	//delete cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    "LOGOUT",

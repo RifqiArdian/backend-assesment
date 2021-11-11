@@ -32,7 +32,10 @@ func (controller *TransactionController) Route(app *fiber.App) {
 
 func (controller *TransactionController) Index(c *fiber.Ctx) error {
 	helper.LogRequest(c)
+	//get user id from cookie
 	userId := c.Cookies("user-id")
+
+	//call get user transaction service
 	responses := controller.TransactionService.Get(userId)
 	return helper.Ok(c,responses)
 }
@@ -40,6 +43,8 @@ func (controller *TransactionController) Index(c *fiber.Ctx) error {
 func (controller *TransactionController)Create(c *fiber.Ctx) error {
 	helper.LogRequest(c)
 	var request model.InsertTransactionRequest
+
+	//parsing request to model
 	request.UserId = c.Cookies("user-id")
 	err := c.BodyParser(&request)
 	if err!=nil{
@@ -49,6 +54,8 @@ func (controller *TransactionController)Create(c *fiber.Ctx) error {
 		})
 	}
 	request.UserId = c.Cookies("user-id")
+
+	//call create transaction service
 	controller.TransactionService.Insert(request)
 	return helper.Ok(c,nil)
 }

@@ -33,7 +33,9 @@ func (service *authServiceImpl) Logout(token string) {
 }
 
 func (service *authServiceImpl) Login(request model.LoginRequest) (response model.GetUserResponse) {
+	//run validation
 	validation.ValidateLogin(request)
+	//check email
 	user, err := service.UserRepository.FindByEmail(request.Email)
 	if err != nil{
 		panic(exception.ValidationError{
@@ -42,6 +44,7 @@ func (service *authServiceImpl) Login(request model.LoginRequest) (response mode
 		})
 	}
 
+	//check password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 	if err != nil{
 		panic(exception.ValidationError{
@@ -50,6 +53,7 @@ func (service *authServiceImpl) Login(request model.LoginRequest) (response mode
 		})
 	}
 
+	//create token
 	token := base64.StdEncoding.EncodeToString([]byte(uuid.New().String()))
 	service.UserRepository.UpdateToken(user.Id, token)
 
@@ -70,10 +74,12 @@ func (service *authServiceImpl) Login(request model.LoginRequest) (response mode
 }
 
 func (service *authServiceImpl) Register(request model.RegisterRequest) (response model.GetUserResponse) {
+	//run validation
 	validation.ValidateRegister(request)
-
+	//encrypt password
 	password,_ := bcrypt.GenerateFromPassword([]byte(request.Password),5)
 
+	//create user
 	user := entity.User{
 		Id:        uuid.New().String(),
 		Name:      request.Name,
@@ -104,6 +110,7 @@ func (service *authServiceImpl) Register(request model.RegisterRequest) (respons
 }
 
 func (service *authServiceImpl) GetProfile(token string) (response model.GetUserResponse) {
+	//check token
 	user,err := service.UserRepository.FindByToken(token)
 	if err!=nil{
 		panic(exception.ValidationError{
